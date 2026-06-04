@@ -92,7 +92,7 @@ def create_agent_prompt(df_info):
   ])
 
 
-def execute_code(df, code, chart_path="chart.png"):
+def execute_code(df, code):
   """Execute pandas code in a sandboxed environment"""
   
   # Limiting globals available to LLM's code
