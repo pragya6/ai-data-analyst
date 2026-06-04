@@ -9,18 +9,18 @@ app_port: 7860
 
 # 📊 AI Data Analyst
 
-Upload a CSV, ask questions in plain English — get answers, tables, and charts. No SQL, no formulas, no code required.
+Upload a CSV/XSLX/TSV/XLS, ask questions in plain English — get answers, tables, and charts. No SQL, no formulas, no code required.
 
 Powered by an AI agent that writes and executes pandas code in a sandboxed environment.
 
 ## How It Works
 
 ```
-User uploads CSV → AI reads the data structure
+User uploads file → AI reads the data structure
 User asks: "Which city had the most sales?"
   → AI writes pandas code
   → Code executes in a sandbox
-  → Returns answer + chart
+  → Returns answer + chart (if asked/suited)
 ```
 
 ## Features
@@ -28,7 +28,7 @@ User asks: "Which city had the most sales?"
 - **Natural language queries** — ask questions like you'd ask a colleague
 - **Auto-generated charts** — matplotlib visualizations on demand
 - **Secure code execution** — 5-layer sandbox prevents malicious operations
-- **Any CSV** — works with any tabular data
+- **Any CSV |TSV |XLSX |XLS** — works with any tabular data
 
 ## Security
 
@@ -44,7 +44,7 @@ LLM-generated code runs in a restricted sandbox:
 | Component | Technology |
 |-----------|-----------|
 | UI | Streamlit |
-| LLM | Google Gemini |
+| LLM | Groq |
 | Data | Pandas |
 | Charts | Matplotlib |
 | Framework | LangChain |
