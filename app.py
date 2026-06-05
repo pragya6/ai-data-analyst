@@ -16,6 +16,18 @@ load_dotenv()
 # Create LLM
 llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.7, max_tokens=500)
 
+
+def clean_column_name(col):
+  """Normalize column name to clean, consistent format"""
+  col = col.replace('\n', ' ')      # newlines → space
+  col = col.replace('_', ' ')       # underscores → space
+  col = re.sub(r'\s+', ' ', col)    # multiple spaces → single space
+  col = re.sub(r'([\W]+)\s+', r'\1', col) # any non-alphanumeric character's backward space
+  col = re.sub(r'\s+([\W]+)', r'\1', col) # any non-alphanumeric character's forward space
+  col = col.strip()
+  return col
+
+
 def get_df_info(df):
   """Generate detailed description of the DataFrame for LLM"""
   info_parts = [
@@ -68,7 +80,7 @@ def read_data_file(uploaded_file):
     return None
   
   # Clean column names
-  df.columns = df.columns.str.replace('\n', ' ').str.strip()
+  df.columns = [clean_column_name(col) for col in df.columns]
   
   # Remove duplicate header rows hiding as data
   header_mask = pd.Series([True] * len(df))
@@ -156,7 +168,7 @@ def execute_code(df, code):
       result_df = result_val.to_frame()
       result_str = f"Table with {len(result_val)} rows"
     else:
-      result_str = str(result_val) if result_val else printed or "Code executed"
+      result_str = str(result_val) if result_val else printed or "Something Went Wrong!"
 
     return {
       "result": result_str,
@@ -196,19 +208,55 @@ def clean_code(code: str):
   return "\n".join(cleaned_code)
 
 
-def validate_code_columns(df, code):
-  """Check if code references columns that don't exist"""
-  referenced = re.findall(r"df\[['\"](.+?)['\"]\]", code)
-  missing = [col for col in referenced if col not in df.columns]
+def normalize_for_matching(text):
+  """Strip to bare essentials for comparison"""
+  text = text.lower()
+  text = re.sub(r'[^a-z0-9]+', '', text)  # remove ALL non-alphanumeric
+  return text
+
+
+def autocorrect_columns(df, code):
+  """Replace column references in LLM code with actual column names"""
+  # Find all column references: df['...'] or df["..."]
+  referenced = re.findall(r"(df\[(['\"])(.+?)\2\])", code)
+  print("Referenced: ", referenced)
+  
+  if not referenced:
+    return code, None
+  
+  # Build lookup: normalized: actual name
+  real_columns = {
+    normalize_for_matching(col): col
+    for col in df.columns
+  }
+  print("Real Columns Dict: ", real_columns)
+  
+  missing = []
+  
+  for full_match, quote, ref_col in referenced:
+    # Already exact match — skip
+    if ref_col in df.columns:
+      continue
+    
+    # Try normalized match
+    normalized_ref = normalize_for_matching(ref_col)
+    
+    if normalized_ref in real_columns:
+      actual_name = real_columns[normalized_ref]
+      code = code.replace(full_match, f"df[{quote}{actual_name}{quote}]")
+    else:
+      missing.append(ref_col)
   
   if missing:
     available = ", ".join(df.columns.tolist())
-    return {
-      "result": f"Column(s) not found: {', '.join(missing)}. Available columns: {available}",
+    return code, {
+      "result": f"Column(s) not found: {', '.join(missing)}. Available: {available}",
       "result_df": None,
       "figure": None
     }
-  return None
+  
+  return code, None
+
 
 def ask_agent(df, question, llm, max_retries=2):
   """Create langchain chain"""
@@ -250,8 +298,9 @@ def ask_agent(df, question, llm, max_retries=2):
         "figure": None
       }
     
-    # Validate columns exist before execution
-    column_error = validate_code_columns(df, code)
+    # Auto-correct columns exist before execution
+    code, column_error = autocorrect_columns(df, code)
+    print("Column Error: ", column_error)
     if column_error:
       return code, column_error
     
