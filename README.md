@@ -63,4 +63,4 @@ https://pragya6-ai-data-analyst.hf.space
 ![Generated Chart](screenshots/chart.png)
 
 # Ask Questions
-![Generated Chart](screenshots/working.png)
+![Answers](screenshots/working.png)
