@@ -9,6 +9,8 @@ app_port: 7860
 
 # 📊 AI Data Analyst
 
+An AI data analyst agent with sandboxed code execution, 5-layer security, multi-format support, and auto-retry error recovery.
+
 Upload a CSV/XSLX/TSV/XLS, ask questions in plain English — get answers, tables, and charts. No SQL, no formulas, no code required.
 
 Powered by an AI agent that writes and executes pandas code in a sandboxed environment.
@@ -52,3 +54,13 @@ LLM-generated code runs in a restricted sandbox:
 
 # LIVE Demo Link
 https://pragya6-ai-data-analyst.hf.space
+
+## Screenshots
+# Interface
+![App Screenshot](screenshots/interface.png)
+
+# Generate Plots
+![Generated Chart](screenshots/chart.png)
+
+# Ask Questions
+![Generated Chart](screenshots/chart.png)
