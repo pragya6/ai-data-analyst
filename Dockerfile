@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY --chown=user app.py .
 COPY --chown=user prompts/ prompts/
+COPY --chown=user screenshots/ screenshots/
 COPY --chown=user .streamlit .streamlit
 
 USER user
